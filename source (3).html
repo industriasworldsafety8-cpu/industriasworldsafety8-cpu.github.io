@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+            <style>.lw { font-size: 60px; }</style>
+        </head>
+        <body>
+            
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario TXT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --txt-blue: #E3E8F5;
+            --txt-gray: #D1D9E6;
+            --txt-dark-blue: #5A5C70;
+            --txt-dark-gray: #4F435F;
+            --white: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: transparent; /* Fondo transparente para Notion */
+            color: var(--txt-dark-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .calendar-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--txt-blue);
+            border: 2px solid var(--txt-gray);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Background image for the TXT theme */
+        .calendar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/a8/Tomorrow_X_Together_at_a_Dior_event%2C_April_18%2C_2025.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--txt-dark-blue);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-button {
+            background: var(--txt-gray);
+            border: none;
+            color: var(--txt-dark-blue);
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-button:hover {
+            background: #BFCAD6;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            font-weight: 700;
+            color: var(--txt-dark-blue);
+            margin-bottom: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .day {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--txt-gray);
+            border-radius: 8px;
+            padding: 10px 5px;
+            text-align: center;
+            cursor: default;
+            position: relative;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .day:not(.empty):hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .day.empty {
+            background: transparent;
+            border: none;
+        }
+        
+        .day.current-day {
+            background: var(--txt-dark-blue);
+            color: var(--white);
+            font-weight: 700;
+            box-shadow: 0 0 0 3px var(--txt-dark-blue);
+        }
+
+        .day.has-event::before {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--txt-dark-gray);
+            border-radius: 50%;
+        }
+
+        /* Loading spinner */
+        .loading-container {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 0;
+        }
+        .spinner {
+            border: 4px solid var(--txt-blue);
+            border-top: 4px solid var(--txt-dark-blue);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+
+
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button class="nav-button" id="prev-btn">&lt;</button>
+            <h2 id="month-year">Agosto 2025</h2>
+            <button class="nav-button" id="next-btn">&gt;</button>
+        </div>
+        <div class="weekdays">
+            <div>Dom</div>
+            <div>Lun</div>
+            <div>Mar</div>
+            <div>Mié</div>
+            <div>Jue</div>
+            <div>Vie</div>
+            <div>Sáb</div>
+        </div>
+        <div class="days-grid" id="days-grid"><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day empty"></div><div class="day current-day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day has-event" title="Lanzamiento de álbum">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day has-event" title="Concierto en Seúl">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div>
+    </div>
+
+    <script>
+        // Obtenemos los elementos del DOM
+        const monthYearEl = document.getElementById('month-year');
+        const daysGridEl = document.getElementById('days-grid');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Inicializamos la fecha actual
+        let currentDate = new Date();
+        let currentYear = currentDate.getFullYear();
+        let currentMonth = currentDate.getMonth();
+
+        // Nombres de los meses y días en español
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        // Aquí puedes agregar tus eventos de forma manual
+        // El formato es AAAA-MM-DD
+        const manualEvents = {
+            '2025-08-15': 'Lanzamiento de álbum',
+            '2025-08-20': 'Concierto en Seúl',
+            '2025-09-05': 'Entrevista de radio',
+            '2025-09-18': 'Recordatorio: Practicar coreografía',
+            '2025-09-25': 'Entrega de propuesta',
+        };
+
+        // Función para mostrar el spinner de carga
+        function showLoading() {
+            daysGridEl.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Cargando eventos...</p>
+                </div>
+            `;
+        }
+
+        // Función para renderizar el calendario
+        function renderCalendar() {
+            showLoading();
+
+            setTimeout(() => {
+                // Limpiamos el grid de días
+                daysGridEl.innerHTML = '';
+                
+                // Actualizamos el encabezado con el mes y año
+                monthYearEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                
+                // Obtenemos el primer día y el último día del mes
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                // Llenamos los días vacíos al inicio del mes
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.classList.add('day', 'empty');
+                    daysGridEl.appendChild(emptyDay);
+                }
+                
+                // Llenamos los días del mes
+                for (let day = 1; day <= lastDayOfMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.classList.add('day');
+                    dayEl.textContent = day;
+
+                    // Añadimos el evento si existe
+                    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    if (manualEvents[dateStr]) {
+                        dayEl.classList.add('has-event');
+                        // Puedes agregar un tooltip si quieres
+                        dayEl.title = manualEvents[dateStr];
+                    }
+                    
+                    // Marcamos el día actual
+                    const today = new Date();
+                    if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                        dayEl.classList.add('current-day');
+                    }
+                    
+                    daysGridEl.appendChild(dayEl);
+                }
+            }, 500); // Pequeña demora para simular la carga
+        }
+        
+        // Manejamos los eventos de los botones de navegación
+        prevBtn.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        // Renderizamos el calendario al cargar la página
+        renderCalendar();
+    </script>
+
+
+
+            <script>import { useState, useEffect } from 'react';
+
+// Main component for the TXT Calendar App
+const App = () => {
+  // State for the current date displayed in the calendar
+  const [currentDate, setCurrentDate] = useState(new Date());
+  // State for the events fetched from the API (mocked for this example)
+  const [events, setEvents] = useState({});
+  // State to track loading status
+  const [loading, setLoading] = useState(true);
+
+  // Constants for month and weekday names
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const weekdayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+  // Effect to "fetch" events from a mock API
+  useEffect(() => {
+    // This function simulates a call to an API to get calendar events
+    const fetchEvents = () => {
+      setLoading(true);
+      return new Promise((resolve) => {
+        // Simulate network delay
+        setTimeout(() => {
+          // In a real application, you would replace this with a secure
+          // backend API call that fetches data from Google Calendar.
+          const mockEvents = {
+            '2025-08-15': 'Lanzamiento de álbum',
+            '2025-08-20': 'Concierto en Seúl',
+            '2025-09-05': 'Entrevista de radio',
+            '2025-09-18': 'Recordatorio: Practicar coreografía',
+            '2025-09-25': 'Entrega de propuesta',
+          };
+          resolve(mockEvents);
+        }, 1000); // 1-second delay
+      });
+    };
+
+    fetchEvents().then(data => {
+      setEvents(data);
+      setLoading(false);
+    });
+  }, [currentDate]); // Refetch events when the month changes
+
+  // Function to render the days of the calendar
+  const renderDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+
+    const days = [];
+
+    // Add empty divs for the days before the 1st of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(<div key={`empty-${i}`} className="day empty"></div>);
+    }
+
+    // Add the days of the month
+    for (let day = 1; day <= lastDayOfMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const hasEvent = !!events[dateStr];
+      const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+      days.push(
+        <div 
+          key={day}
+          className={`day relative p-2 rounded-lg text-center flex flex-col justify-center items-center transition-all duration-200 cursor-default
+            ${isToday ? 'current-day bg-[#5A5C70] text-white font-bold' : 'bg-white bg-opacity-80 text-gray-700 hover:bg-opacity-100 hover:-translate-y-0.5 shadow-sm'}`}
+          title={hasEvent ? events[dateStr] : ''}
+        >
+          {day}
+          {hasEvent && (
+            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#4F435F] rounded-full"></span>
+          )}
+        </div>
+      );
+    }
+
+    return days;
+  };
+
+  // Function to handle navigation to the previous month
+  const handlePrevMonth = () => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1);
+      return newDate;
+    });
+  };
+
+  // Function to handle navigation to the next month
+  const handleNextMonth = () => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1);
+      return newDate;
+    });
+  };
+
+  return (
+    <div className="font-['Poppins'] bg-[#E3E8F5] bg-cover bg-center rounded-2xl shadow-xl border-2 border-[#D1D9E6] p-8 max-w-sm mx-auto my-auto relative overflow-hidden animate-fade-in transition-all duration-300">
+      
+      {/* Background image for the TXT theme. You can replace this URL with your own image. */}
+      {/* For best results, use a high-quality image with a resolution of at least 400x400 pixels. */}
+      {/* La clase "bg-cover" se ha cambiado a "bg-contain bg-no-repeat" para que la imagen se vea completa. */}
+      <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/a/a8/Tomorrow_X_Together_at_a_Dior_event%2C_April_18%2C_2025.png')] opacity-50 z-0 bg-contain bg-no-repeat"></div>
+
+      <div className="relative z-10">
+        {/* Calendar Header */}
+        <div className="flex justify-between items-center mb-6">
+          <button 
+            onClick={handlePrevMonth} 
+            className="bg-[#D1D9E6] text-gray-800 text-xl p-2 rounded-lg shadow-md hover:bg-[#BFCAD6] transform hover:scale-105 transition-all duration-200"
+            aria-label="Previous Month"
+          >
+            &lt;
+          </button>
+          <h2 className="text-2xl font-bold text-gray-700 text-shadow-sm">
+            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </h2>
+          <button 
+            onClick={handleNextMonth} 
+            className="bg-[#D1D9E6] text-gray-800 text-xl p-2 rounded-lg shadow-md hover:bg-[#BFCAD6] transform hover:scale-105 transition-all duration-200"
+            aria-label="Next Month"
+          >
+            &gt;
+          </button>
+        </div>
+
+        {/* Weekdays Grid */}
+        <div className="grid grid-cols-7 gap-1 text-center font-bold text-gray-600 mb-2">
+          {weekdayNames.map(day => (
+            <div key={day}>{day}</div>
+          ))}
+        </div>
+
+        {/* Days Grid */}
+        <div className="days-grid grid grid-cols-7 gap-1">
+          {loading ? (
+            // Simple loading spinner
+            <div className="col-span-7 text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#5A5C70] mx-auto"></div>
+              <p className="mt-4 text-gray-600">Cargando eventos...</p>
+            </div>
+          ) : (
+            renderDays()
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
+</script>
+        
+    
+</body>
