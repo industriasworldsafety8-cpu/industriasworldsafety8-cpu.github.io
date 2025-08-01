@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget de Hora</title>
+    <!-- Incluye Tailwind CSS para un estilo minimalista -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Usa la fuente Inter de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: transparent; /* Fondo transparente para Notion */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-transparent">
+    <div id="clock" class="text-white text-5xl md:text-6xl font-bold tracking-tight text-shadow-md">
+        <!-- El tiempo se mostrará aquí -->
+    </div>
+
+    <script>
+        // Obtiene el elemento del reloj
+        const clockElement = document.getElementById('clock');
+
+        // Función para actualizar la hora
+        function updateTime() {
+            // Crea un nuevo objeto Date con la hora actual
+            const now = new Date();
+
+            // Opciones de formato para la hora
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false // Formato de 24 horas
+            };
+
+            // Formatea la hora con las opciones
+            const formattedTime = now.toLocaleTimeString('es-ES', options);
+
+            // Actualiza el contenido del elemento del reloj
+            clockElement.textContent = formattedTime;
+        }
+
+        // Llama a la función una vez al principio para mostrar la hora de inmediato
+        updateTime();
+
+        // Configura un intervalo para actualizar la hora cada 1000ms (1 segundo)
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
